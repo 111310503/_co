@@ -25,5 +25,20 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-	//// Replace this comment with your code.
+	// 1. Data Routing (DMux)
+    // address[14] = 0 -> RAM
+    // address[14] = 1, address[13] = 0 -> Screen
+    // address[14] = 1, address[13] = 1 -> Keyboard (Invalid for load)
+    DMux4Way(in=load, sel=address[13..14], a=loadRamA, b=loadRamB, c=loadScreen, d=loadKbd);
+
+    // RAM covers 00 and 01, so combine them
+    Or(a=loadRamA, b=loadRamB, out=loadRam);
+
+    // 2. Memory Units
+    RAM16K(in=in, load=loadRam, address=address[0..13], out=outRam);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=outScreen);
+    Keyboard(out=outKbd);
+
+    // 3. Output Selection (Mux)
+    Mux4Way16(a=outRam, b=outRam, c=outScreen, d=outKbd, sel=address[13..14], out=out);
 }
