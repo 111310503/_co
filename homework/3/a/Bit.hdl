@@ -13,5 +13,12 @@ CHIP Bit {
     OUT out;
 
     PARTS:
-    //// Replace this comment with your code.
+    // If load=1, pass 'in' to the DFF.
+    // If load=0, pass the old 'out' (feedback) back to the DFF.
+    Mux(a=dffOut, b=in, sel=load, out=muxOut);
+
+    // The DFF stores the value for the next clock cycle.
+    // We send the output to the pin 'out' AND loop it back to the Mux ('dffOut').
+    DFF(in=muxOut, out=out, out=dffOut);
 }
+
