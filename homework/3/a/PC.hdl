@@ -14,5 +14,31 @@ CHIP PC {
     OUT out[16];
     
     PARTS:
-    //// Replace this comment with your code.
+    // 1. Current state feedback
+    // We need the current output of the register to calculate (out + 1).
+    // The Register output is defined at the bottom, looped back here as 'feedback'.
+    
+    // 2. Increment Logic
+    Inc16(in=feedback, out=pcPlusOne);
+
+    // 3. Mux Chain (Priority: Reset > Load > Inc)
+    // We start from the lowest priority (Inc) and work our way up.
+
+    // Priority 3: Inc
+    // If inc=1, we want pcPlusOne. Else, keep existing feedback.
+    Mux16(a=feedback, b=pcPlusOne, sel=inc, out=w1);
+
+    // Priority 2: Load
+    // If load=1, we overwrite the previous result with 'in'.
+    Mux16(a=w1, b=in, sel=load, out=w2);
+
+    // Priority 1: Reset
+    // If reset=1, we overwrite everything with 0.
+    Mux16(a=w2, b=false, sel=reset, out=toRegister);
+
+    // 4. State Storage
+    // The Register always updates (load=true) because even if no control bit is set,
+    // the Mux chain passes 'feedback' through, effectively reloading the same value.
+    Register(in=toRegister, load=true, out=out, out=feedback);
 }
+
